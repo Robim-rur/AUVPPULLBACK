@@ -16,10 +16,26 @@ st.title("🏦 Scanner Institucional V3 - Pullback Brasil")
 # UNIVERSO PERSONALIZADO
 # =========================
 tickers = [
-    "ITUB4.SA","SBSP3.SA","BBDC4.SA","B3SA3.SA","ITSA4.SA",
-    "WEGE3.SA","BPAC11.SA","ABEV3.SA","BBAS3.SA","PRIO3.SA",
-    "PETR4.SA","RDOR3.SA","CMIG4.SA","BBSE3.SA","TIMS3.SA",
-    "TOTS3.SA","PSSA3.SA","SAPR11.SA","SAPR4.SA","POMO4.SA"
+    # Bancos / Financeiro
+    "ITUB4.SA","BBDC4.SA","BBAS3.SA","BPAC11.SA","ITSA4.SA","B3SA3.SA",
+
+    # Energia / Utilities
+    "EGIE3.SA","CPLE6.SA","CPFE3.SA","TAEE11.SA","TRPL4.SA","CMIG4.SA","SAPR11.SA","SAPR4.SA",
+
+    # Telecom
+    "VIVT3.SA","TIMS3.SA",
+
+    # Consumo / Serviços
+    "ABEV3.SA","PSSA3.SA","MULT3.SA","ALOS3.SA","ODPV3.SA",
+
+    # Construção / Industrial
+    "CYRE3.SA","KEPL3.SA","POMO4.SA","TOTS3.SA",
+
+    # Commodities / Outros
+    "PETR4.SA","PRIO3.SA","VALE3.SA",
+
+    # Crescimento
+    "WEGE3.SA","RDOR3.SA","SBSP3.SA","BBSE3.SA"
 ]
 
 # =========================
