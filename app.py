@@ -9,14 +9,14 @@ from ta.momentum import StochasticOscillator
 # =========================
 # CONFIG
 # =========================
-st.set_page_config(page_title="Scanner Institucional V3", layout="wide")
-st.title("🏦 Scanner Institucional V3 - Pullback Brasil")
+st.set_page_config(page_title="Scanner Institucional V3.1", layout="wide")
+st.title("🏦 Scanner Institucional V3.1 - Pullback Brasil")
 
 # =========================
-# UNIVERSO PERSONALIZADO
+# UNIVERSO
 # =========================
 tickers = [
-    # Bancos / Financeiro
+ # Bancos / Financeiro
     "ITUB4.SA","BBDC4.SA","BBAS3.SA","BPAC11.SA","ITSA4.SA","B3SA3.SA",
 
     # Energia / Utilities
@@ -39,25 +39,27 @@ tickers = [
 ]
 
 # =========================
-# DATA (ROBUSTO)
+# DATA
 # =========================
 def get_data(ticker, interval="1d", period="2y"):
-    df = yf.download(ticker, interval=interval, period=period, progress=False)
+    try:
+        df = yf.download(ticker, interval=interval, period=period, progress=False)
 
-    if df.empty:
+        if df.empty:
+            return df
+
+        if isinstance(df.columns, pd.MultiIndex):
+            df.columns = df.columns.get_level_values(0)
+
+        df = df[["Open","High","Low","Close","Volume"]]
+        df.dropna(inplace=True)
+
         return df
-
-    # Corrige MultiIndex
-    if isinstance(df.columns, pd.MultiIndex):
-        df.columns = df.columns.get_level_values(0)
-
-    df = df[["Open", "High", "Low", "Close", "Volume"]]
-    df.dropna(inplace=True)
-
-    return df
+    except:
+        return pd.DataFrame()
 
 # =========================
-# INDICADORES (ANTI-ERRO)
+# INDICADORES
 # =========================
 def add_indicators(df):
 
@@ -94,14 +96,11 @@ def weekly_trend(ticker):
 
     return dfw["Close"].iloc[-1] > dfw["ema20"].iloc[-1]
 
-
 def liquidity_filter(df):
     return df["Volume"].iloc[-1] > 500000
 
-
 def volume_strength(df):
     return df["vol_ma20"].iloc[-1] > df["vol_ma50"].iloc[-1]
-
 
 def false_breakdown(df):
     if len(df) < 10:
@@ -111,7 +110,6 @@ def false_breakdown(df):
     prev_low = df["Low"].rolling(5).min().iloc[-2]
 
     return last["Close"] > prev_low
-
 
 # =========================
 # SETUP
@@ -125,6 +123,19 @@ def pullback_signal(df):
         last["k"] > last["d"] and
         last["k"] < 50
     )
+
+# =========================
+# STATUS DO ATIVO (CORRIGIDO)
+# =========================
+def asset_status(df):
+    last = df.iloc[-1]
+
+    if last["Close"] < last["ema69"]:
+        return "Perdeu Tendência"
+    elif last["k"] < last["d"]:
+        return "Observação"
+    else:
+        return "Setup Ativo"
 
 # =========================
 # PROBABILIDADE
@@ -162,19 +173,6 @@ def simulate(df):
     return round((gains / total) * 100, 2)
 
 # =========================
-# CLASSIFICAÇÃO
-# =========================
-def classify(df):
-    last = df.iloc[-1]
-
-    if last["Close"] < last["ema69"]:
-        return "Virou Carteira"
-    elif last["k"] < last["d"]:
-        return "Aguardar"
-    else:
-        return "Trade"
-
-# =========================
 # SCANNER
 # =========================
 results = []
@@ -195,7 +193,7 @@ for i, ticker in enumerate(tickers):
         fake_break = false_breakdown(df)
         pullback = pullback_signal(df)
         prob = simulate(df)
-        status = classify(df)
+        status = asset_status(df)
 
         last = df.iloc[-1]
 
@@ -217,7 +215,7 @@ for i, ticker in enumerate(tickers):
             "Volume OK": volume_ok,
             "Sem Falso Rompimento": fake_break,
             "Tendência Semanal": weekly_ok,
-            "Status": status
+            "Status do Ativo": status
         })
 
     except Exception as e:
@@ -241,7 +239,7 @@ if not df_res.empty:
     premium = df_res[
         (df_res["Score"] >= 75) &
         (df_res["Probabilidade +3%"] >= 55) &
-        (df_res["Status"] == "Trade")
+        (df_res["Status do Ativo"] == "Setup Ativo")
     ]
 
     st.dataframe(premium, use_container_width=True)
